@@ -20,6 +20,10 @@ h2{font-size:15px;margin:14px 4px 8px;color:var(--mute);display:flex;justify-con
 .it{display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
 .ck{flex:none;width:34px;height:34px;border-radius:50%;border:2.5px solid #d5d5dd;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
 .tx{flex:1;min-width:0}
+.ph{flex:none;width:76px;height:76px;border-radius:10px;object-fit:cover;background:#eee}
+.it.got .ph,.it.none .ph{opacity:.45}
+.zoom{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.85);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;color:#fff;text-align:center}
+.zoom.on{display:flex}.zoom img{width:min(86vw,420px);border-radius:16px}.zoom p{font-size:18px;margin:14px 0 4px}.zoom small{opacity:.8}
 .nm{font-size:17px;line-height:1.3;word-break:keep-all}
 .sub{font-size:13px;color:var(--mute);margin-top:3px}
 .sub b{font-weight:600;color:var(--ink)}
@@ -40,10 +44,11 @@ h2{font-size:15px;margin:14px 4px 8px;color:var(--mute);display:flex;justify-con
 <header><h1>다이소 장보기</h1><div class="bar"><i id="pg"></i></div>
 <div class="sum"><span id="cnt"></span><span id="won"></span></div></header>
 <div class="tabs" id="tabs"></div>
-<p class="tip">동그라미를 누르면 담기, 「없음」은 매장에 없을 때. 품번을 누르면 복사돼요. <span class="warn">※</span>는 매장에 없을 수도 있는 것.</p>
+<p class="tip">사진을 누르면 크게 보여요. 동그라미를 누르면 담기, 「없음」은 매장에 없을 때. 품번을 누르면 복사돼요. <span class="warn">※</span>는 매장에 없을 수도 있는 것.</p>
 <main id="list"></main>
 <div class="foot"><button class="b2" id="reset">처음부터</button><button class="b1" id="copy">없던 것 복사</button></div>
 <div class="toast" id="toast"></div>
+<div class="zoom" id="zoom"><img id="zi" alt=""><p id="zn"></p><small id="zs"></small><small style="margin-top:18px">아무 데나 누르면 닫혀요</small></div>
 <script>
 const G=[
 ['식품 - 젤리·사탕',[
@@ -75,12 +80,16 @@ function render(){
  document.getElementById('tabs').innerHTML=['전체',...G.map(g=>g[0])].map((t,k)=>`<button class="${tab==k-1?'on':''}" data-t="${k-1}">${t}</button>`).join('');
  document.getElementById('list').innerHTML=G.map((g,gi)=>tab!=-1&&tab!=gi?'':`<section><h2><span>${gi+1}. ${g[0]}</span><span>${g[1].filter(i=>S[i[2]]).length}/${g[1].length}</span></h2>`+
   g[1].map(i=>`<div class="it ${S[i[2]]==1?'got':S[i[2]]==2?'none':''}"><div class="ck" data-c="${i[2]}">${S[i[2]]==1?'✓':''}</div>
+  <img class="ph" src="img/${i[2]}.jpg" alt="" data-z="${i[2]}" loading="lazy">
   <div class="tx" data-c="${i[2]}"><div class="nm">${i[3]?'<span class="warn">※ </span>':''}${i[0]}</div>
   <div class="sub"><b>${won(i[1])}</b> · <span data-p="${i[2]}">품번 ${i[2]}</span>${i[3]?` · <span class="warn">${i[3]}</span>`:''}</div></div>
   <button class="nob" data-n="${i[2]}">없음</button></div>`).join('')+'</section>').join('');
 }
 document.addEventListener('click',e=>{
- const t=e.target.closest('[data-t],[data-p],[data-c],[data-n]');if(!t)return;
+ if(e.target.closest('#zoom')){document.getElementById('zoom').classList.remove('on');return}
+ const t=e.target.closest('[data-t],[data-p],[data-c],[data-n],[data-z]');if(!t)return;
+ if(t.dataset.z){let it;G.forEach(g=>g[1].forEach(i=>{if(i[2]==t.dataset.z)it=i}));
+  zi.src='img/'+it[2]+'.jpg';zn.textContent=it[0];zs.textContent=won(it[1])+' · 품번 '+it[2];zoom.classList.add('on');return}
  if(t.dataset.t!=null){tab=+t.dataset.t;render();scrollTo(0,0);return}
  if(t.dataset.p){navigator.clipboard?.writeText(t.dataset.p).then(()=>toast('품번 복사했어요'),()=>{});return}
  if(t.dataset.c){const c=t.dataset.c;S[c]=S[c]==1?0:1;save();render();return}
