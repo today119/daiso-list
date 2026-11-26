@@ -45,7 +45,17 @@ h2{font-size:15px;margin:14px 4px 8px;color:var(--mute);display:flex;justify-con
 .it.none .ck{border-color:#e2e2e8}
 .foot{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #eee;padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px}
 .foot button{flex:1;border:0;border-radius:12px;padding:13px;font-size:15px;font-weight:600}
-.b1{background:var(--ink);color:#fff}.b2{background:#eee;color:var(--ink)}
+.b1{background:var(--ink);color:#fff}.b3{background:var(--red);color:#fff;flex:.8!important}
+.np{display:flex;align-items:center;justify-content:center;font-size:34px}
+.del{color:#c0392b;text-decoration:underline}
+.sheet{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.45);display:none;align-items:flex-end}.sheet.on{display:flex}
+.sheet form{background:#fff;width:100%;border-radius:20px 20px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto}
+.sheet h3{margin:0 0 12px;font-size:18px}.sheet label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
+.sheet input,.sheet select{width:100%;font-size:16px;padding:11px 12px;border:1.5px solid #ddd;border-radius:10px;background:#fff;color:var(--ink)}
+.sheet .row{display:flex;gap:8px}.sheet .row>div{flex:1}
+.pick{display:flex;align-items:center;gap:12px}.pick .pv{width:76px;height:76px;border-radius:10px;background:#f0f0f3;display:flex;align-items:center;justify-content:center;font-size:30px;overflow:hidden;flex:none}.pick .pv img{width:100%;height:100%;object-fit:cover}
+.pick button{border:1.5px solid #ddd;background:#fff;border-radius:10px;padding:10px 12px;font-size:15px}
+.sheet .btns{display:flex;gap:8px;margin-top:16px}.sheet .btns button{flex:1;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:600}.b2{background:#eee;color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:rgba(0,0,0,.8);color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
 .toast.on{opacity:1}
 .tip{margin:10px 16px 0;font-size:13px;color:var(--mute);line-height:1.5}
@@ -56,11 +66,18 @@ h2{font-size:15px;margin:14px 4px 8px;color:var(--mute);display:flex;justify-con
 <div class="tabs" id="tabs"></div>
 <p class="tip">사진을 누르면 크게 보여요. 동그라미를 누르면 담기, 「없음」은 매장에 없을 때. 품번을 누르면 복사돼요. <span class="warn">※</span>는 매장에 없을 수도 있는 것.</p>
 <main id="list"></main>
-<div class="foot"><button class="b2" id="reset">처음부터</button><button class="b1" id="copy">없던 것 복사</button></div>
+<div class="foot"><button class="b3" id="addBtn">＋ 추가</button><button class="b2" id="reset">처음부터</button><button class="b1" id="copy">없던 것 복사</button></div>
 <div class="toast" id="toast"></div>
+<div class="sheet" id="sheet"><form id="af" autocomplete="off"><h3>상품 추가</h3>
+<label>상품 이름</label><input id="fN" required placeholder="예: 트롤리 젤리">
+<div class="row"><div><label>가격(원)</label><input id="fP" inputmode="numeric" required placeholder="1000"></div><div><label>개수</label><input id="fQ" inputmode="numeric" value="1"></div></div>
+<label>품번 (몰라도 돼요)</label><input id="fC" inputmode="numeric" placeholder="다이소 앱 상품 화면의 품번">
+<label>코너</label><select id="fG"></select>
+<label>사진 (찍거나 앨범에서)</label><div class="pick"><div class="pv" id="fV">🛍️</div><button type="button" id="fPick">사진 고르기</button><input type="file" id="fF" accept="image/*" hidden></div>
+<div class="btns"><button type="button" class="b2" id="fX">취소</button><button class="b1">추가하기</button></div></form></div>
 <div class="zoom" id="zoom"><img id="zi" alt=""><p id="zn"></p><small id="zs"></small><small style="margin-top:18px">아무 데나 누르면 닫혀요</small></div>
 <script>
-const G=[
+const BASE=[
 ['식품 - 젤리·사탕',[
 ['트롤리 상어 젤리 100g',2000,'967852084'],['트롤리 미니 버거 젤리 50g',2000,'051299808'],['쯔부구미 포도향 55g',2000,'132604367'],
 ['망고스틴 큐브 젤리 50g',1000,'712266874'],['롯데 수박바 젤리 56g',1000,'106233657'],['오리온 포도 알맹이 67g',1000,'111735960'],
@@ -78,12 +95,17 @@ const G=[
 ['디지털·컴퓨터',[
 ['유선 LED 키보드',5000,'1045377','온라인 품절'],['투톤 저소음 유선 키보드',5000,'1072776'],
 ['맥스틸 블루투스 저소음 마우스',5000,'1031573'],['키보드 손목 보호 쿠션 브라운',2000,'10332701']]]];
+let G=[];
+function build(){G=BASE.map(g=>[g[0],g[1].slice()]);const ex=[];
+ (S._add||[]).forEach(a=>{const it=[a.n,a.p,a.id,'',a.img||'',1];if(a.g>=0&&G[a.g])G[a.g][1].push(it);else ex.push(it)});
+ if(ex.length)G.push(['직접 추가',ex])}
 const K='daiso_list_v1';let S={};try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
 const Q=c=>S._q&&S._q[c]!=null?S._q[c]:1;const BUD=()=>S._b||150000;
 let tab=-1;const won=n=>n.toLocaleString()+'원';
 function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),1500)}
 function render(){
+ build();if(tab>=G.length)tab=-1;
  let all=0,got=0,none=0,sum=0,plan=0;G.forEach(g=>g[1].forEach(i=>{all++;if(S[i[2]]==1){got++;sum+=i[1]*Q(i[2])}if(S[i[2]]!=2)plan+=i[1]*Q(i[2]);if(S[i[2]]==2)none++}));
  document.getElementById('pg').style.width=((got+none)/all*100)+'%';
  document.getElementById('cnt').textContent=`담음 ${got} · 없음 ${none} · 남음 ${all-got-none}`;
@@ -93,30 +115,48 @@ function render(){
  document.getElementById('tabs').innerHTML=['전체',...G.map(g=>g[0])].map((t,k)=>`<button class="${tab==k-1?'on':''}" data-t="${k-1}">${t}</button>`).join('');
  document.getElementById('list').innerHTML=G.map((g,gi)=>tab!=-1&&tab!=gi?'':`<section><h2><span>${gi+1}. ${g[0]}</span><span>${g[1].filter(i=>S[i[2]]).length}/${g[1].length}</span></h2>`+
   g[1].map(i=>`<div class="it ${S[i[2]]==1?'got':S[i[2]]==2?'none':''}"><div class="ck" data-c="${i[2]}">${S[i[2]]==1?'✓':''}</div>
-  <img class="ph" src="img/${i[2]}.jpg" alt="" data-z="${i[2]}" loading="lazy">
+  ${i[5]&&!i[4]?`<div class="ph np" data-z="${i[2]}">🛍️</div>`:`<img class="ph" src="${i[4]||'img/'+i[2]+'.jpg'}" alt="" data-z="${i[2]}" loading="lazy">`}
   <div class="tx" data-c="${i[2]}"><div class="nm">${i[3]?'<span class="warn">※ </span>':''}${i[0]}</div>
-  <div class="sub"><b>${won(i[1])}</b>${Q(i[2])>1?` × ${Q(i[2])} = <b>${won(i[1]*Q(i[2]))}</b>`:''} · <span data-p="${i[2]}">품번 ${i[2]}</span>${i[3]?` · <span class="warn">${i[3]}</span>`:''}</div>
+  <div class="sub"><b>${won(i[1])}</b>${Q(i[2])>1?` × ${Q(i[2])} = <b>${won(i[1]*Q(i[2]))}</b>`:''}${/^u/.test(i[2])?'':` · <span data-p="${i[2]}">품번 ${i[2]}</span>`}${i[5]?` · <span class="del" data-d="${i[2]}">지우기</span>`:''}${i[3]?` · <span class="warn">${i[3]}</span>`:''}</div>
   <div class="qty"><button data-m="${i[2]}">−</button><span>${Q(i[2])}개</span><button data-a="${i[2]}">+</button></div></div>
   <button class="nob" data-n="${i[2]}">없음</button></div>`).join('')+'</section>').join('');
 }
 document.addEventListener('click',e=>{
  if(e.target.closest('#zoom')){document.getElementById('zoom').classList.remove('on');return}
- const t=e.target.closest('[data-t],[data-p],[data-c],[data-n],[data-z],[data-m],[data-a]');if(!t)return;
+ const t=e.target.closest('[data-t],[data-p],[data-c],[data-n],[data-z],[data-m],[data-a],[data-d]');if(!t)return;
+ if(t.dataset.d){const c=t.dataset.d,a=(S._add||[]).find(x=>x.id==c);if(a&&confirm(`「${a.n}」을(를) 목록에서 지울까요?`)){S._add=S._add.filter(x=>x.id!=c);delete S[c];if(S._q)delete S._q[c];save();render();toast('지웠어요')}return}
  if(e.target.closest('.qty')&&!t.dataset.m&&!t.dataset.a)return;
  if(t.dataset.m||t.dataset.a){const c=t.dataset.m||t.dataset.a;S._q=S._q||{};S._q[c]=Math.max(1,Q(c)+(t.dataset.a?1:-1));save();render();return}
  if(t.dataset.z){let it;G.forEach(g=>g[1].forEach(i=>{if(i[2]==t.dataset.z)it=i}));
-  zi.src='img/'+it[2]+'.jpg';zn.textContent=it[0];zs.textContent=won(it[1])+' · 품번 '+it[2];zoom.classList.add('on');return}
+  if(it[5]&&!it[4])return;zi.src=it[4]||'img/'+it[2]+'.jpg';zn.textContent=it[0];zs.textContent=won(it[1])+(/^u/.test(it[2])?'':' · 품번 '+it[2]);zoom.classList.add('on');return}
  if(t.dataset.t!=null){tab=+t.dataset.t;render();scrollTo(0,0);return}
  if(t.dataset.p){navigator.clipboard?.writeText(t.dataset.p).then(()=>toast('품번 복사했어요'),()=>{});return}
  if(t.dataset.c){const c=t.dataset.c;S[c]=S[c]==1?0:1;save();render();return}
  if(t.dataset.n){const c=t.dataset.n;S[c]=S[c]==2?0:2;save();render()}
 });
-document.getElementById('reset').onclick=()=>{if(confirm('담기·없음 체크를 모두 지울까요? (개수·예산은 그대로)')){S={_q:S._q,_b:S._b};save();render()}};
+document.getElementById('reset').onclick=()=>{if(confirm('담기·없음 체크를 모두 지울까요? (개수·예산은 그대로)')){S={_q:S._q,_b:S._b,_add:S._add};save();render()}};
 document.getElementById('bEdit').onclick=()=>{const v=prompt('예산을 원 단위로 적어 주세요',BUD());if(v==null)return;const n=parseInt(String(v).replace(/[^0-9]/g,''));if(n>0){S._b=n;save();render()}};
 document.getElementById('copy').onclick=()=>{
  const L=[];G.forEach(g=>g[1].forEach(i=>{if(S[i[2]]==2)L.push(`- ${i[0]} ${Q(i[2])}개 ${won(i[1]*Q(i[2]))} (품번 ${i[2]})`)}));
  if(!L.length){toast('「없음」 표시한 게 아직 없어요');return}
  navigator.clipboard?.writeText('다이소 매장에 없던 것\n'+L.join('\n')).then(()=>toast(`없던 것 ${L.length}개 복사했어요`),()=>toast('복사가 안 됐어요'));
 };
+let fImg='';
+addBtn.onclick=()=>{af.reset();fQ.value=1;fImg='';fV.textContent='🛍️';
+ fG.innerHTML=BASE.map((g,k)=>`<option value="${k}">${g[0]}</option>`).join('')+'<option value="-1">직접 추가 (기타)</option>';fG.value=tab>=0&&tab<BASE.length?tab:-1;sheet.classList.add('on');setTimeout(()=>fN.focus(),50)};
+fX.onclick=()=>sheet.classList.remove('on');
+sheet.addEventListener('click',e=>{if(e.target==sheet)sheet.classList.remove('on')});
+fPick.onclick=()=>fF.click();
+fF.onchange=()=>{const f=fF.files[0];if(!f)return;const im=new Image(),u=URL.createObjectURL(f);
+ im.onload=()=>{const s=Math.min(im.width,im.height),c=document.createElement('canvas');c.width=c.height=300;
+  c.getContext('2d').drawImage(im,(im.width-s)/2,(im.height-s)/2,s,s,0,0,300,300);fImg=c.toDataURL('image/jpeg',.75);URL.revokeObjectURL(u);
+  fV.innerHTML=`<img src="${fImg}" alt="">`};im.src=u};
+af.onsubmit=e=>{e.preventDefault();const n=fN.value.trim(),p=parseInt(fP.value.replace(/[^0-9]/g,''))||0;if(!n||!p){toast('이름과 가격을 넣어 주세요');return}
+ const code=fC.value.replace(/[^0-9]/g,'');build();let dup=false;G.forEach(g=>g[1].forEach(i=>{if(code&&i[2]==code)dup=true}));
+ if(dup){toast('이미 목록에 있는 품번이에요');return}
+ const id=code||('u'+Date.now());S._add=S._add||[];S._add.push({id,n,p,g:+fG.value,img:fImg});
+ const q=parseInt(fQ.value)||1;if(q>1){S._q=S._q||{};S._q[id]=q}
+ save();if(!localStorage.getItem(K)||!localStorage.getItem(K).includes(id)){toast('저장이 안 됐어요. 사진 없이 다시 해 볼래요?')}
+ sheet.classList.remove('on');render();toast(`「${n}」 추가했어요`)};
 render();
 </script></body></html>
