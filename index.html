@@ -61,7 +61,7 @@ h2{font-size:15px;margin:14px 4px 8px;color:var(--mute);display:flex;justify-con
 .tip{margin:10px 16px 0;font-size:13px;color:var(--mute);line-height:1.5}
 </style></head><body>
 <header><h1>다이소 장보기</h1><div class="bar"><i id="pg"></i></div>
-<div class="bud"><div><small>예산 <button id="bEdit">바꾸기</button></small><b id="bv"></b></div><div><small>살 것 합계</small><b id="pv"></b></div><div id="lbox"><small>남는 돈</small><b id="lv"></b></div></div>
+<div class="bud"><div><small>전체 예산 <button id="bEdit">바꾸기</button></small><b id="bv"></b></div><div><small>살 것 합계</small><b id="pv"></b></div><div id="lbox"><small>다 사고 남는 돈</small><b id="lv"></b></div></div>
 <div class="sum"><span id="cnt"></span><span id="won"></span></div></header>
 <div class="tabs" id="tabs"></div>
 <p class="tip">사진을 누르면 크게 보여요. 동그라미를 누르면 담기, 「없음」은 매장에 없을 때. 품번을 누르면 복사돼요. <span class="warn">※</span>는 매장에 없을 수도 있는 것.</p>
@@ -111,7 +111,7 @@ function render(){
  document.getElementById('cnt').textContent=`담음 ${got} · 없음 ${none} · 남음 ${all-got-none}`;
  document.getElementById('won').textContent='담은 금액 '+won(sum);
  bv.textContent=won(BUD());pv.textContent=won(plan);const left=BUD()-plan;
- lv.textContent=(left<0?'-':'')+won(Math.abs(left));lbox.className=left<0?'over':'';lbox.querySelector('small').textContent=left<0?'예산 초과':'남는 돈';
+ lv.textContent=(left<0?'-':'')+won(Math.abs(left));lbox.className=left<0?'over':'';lbox.querySelector('small').textContent=left<0?'예산 초과':'다 사고 남는 돈';
  document.getElementById('tabs').innerHTML=['전체',...G.map(g=>g[0])].map((t,k)=>`<button class="${tab==k-1?'on':''}" data-t="${k-1}">${t}</button>`).join('');
  document.getElementById('list').innerHTML=G.map((g,gi)=>tab!=-1&&tab!=gi?'':`<section><h2><span>${gi+1}. ${g[0]}</span><span>${g[1].filter(i=>S[i[2]]).length}/${g[1].length}</span></h2>`+
   g[1].map(i=>`<div class="it ${S[i[2]]==1?'got':S[i[2]]==2?'none':''}"><div class="ck" data-c="${i[2]}">${S[i[2]]==1?'✓':''}</div>
