@@ -61,7 +61,7 @@ h2{font-size:15px;margin:14px 4px 8px;color:var(--mute);display:flex;justify-con
 .tip{margin:10px 16px 0;font-size:13px;color:var(--mute);line-height:1.5}
 </style></head><body>
 <header><h1>다이소 장보기</h1><div class="bar"><i id="pg"></i></div>
-<div class="bud"><div><small>전체 예산 <button id="bEdit">바꾸기</button></small><b id="bv"></b></div><div><small>살 것 합계</small><b id="pv"></b></div><div id="lbox"><small>다 사고 남는 돈</small><b id="lv"></b></div></div>
+<div class="bud"><div><small>전체 예산 <button id="bEdit">바꾸기</button></small><b id="bv"></b></div><div><small>앞으로 살 것</small><b id="pv"></b></div><div id="lbox"><small>다 사고 남는 돈</small><b id="lv"></b></div></div>
 <div class="sum"><span id="cnt"></span><span id="won"></span></div></header>
 <div class="tabs" id="tabs"></div>
 <p class="tip">사진을 누르면 크게 보여요. 동그라미를 누르면 담기, 「없음」은 매장에 없을 때. 품번을 누르면 복사돼요. <span class="warn">※</span>는 매장에 없을 수도 있는 것.</p>
@@ -106,7 +106,7 @@ let tab=-1;const won=n=>n.toLocaleString()+'원';
 function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),1500)}
 function render(){
  build();if(tab>=G.length)tab=-1;
- let all=0,got=0,none=0,sum=0,plan=0;G.forEach(g=>g[1].forEach(i=>{all++;if(S[i[2]]==1){got++;sum+=i[1]*Q(i[2])}if(S[i[2]]!=2)plan+=i[1]*Q(i[2]);if(S[i[2]]==2)none++}));
+ let all=0,got=0,none=0,sum=0,plan=0;G.forEach(g=>g[1].forEach(i=>{all++;if(S[i[2]]==1){got++;sum+=i[1]*Q(i[2])}if(!S[i[2]])plan+=i[1]*Q(i[2]);if(S[i[2]]==2)none++}));
  document.getElementById('pg').style.width=((got+none)/all*100)+'%';
  document.getElementById('cnt').textContent=`담음 ${got} · 없음 ${none} · 남음 ${all-got-none}`;
  document.getElementById('won').textContent='담은 금액 '+won(sum);
