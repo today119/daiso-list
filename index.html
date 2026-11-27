@@ -101,7 +101,7 @@ function build(){G=BASE.map(g=>[g[0],g[1].slice()]);const ex=[];
  if(ex.length)G.push(['직접 추가',ex])}
 const K='daiso_list_v1';let S={};try{S=JSON.parse(localStorage.getItem(K))||{}}catch(e){}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
-const Q=c=>S._q&&S._q[c]!=null?S._q[c]:1;const BUD=()=>S._b||189580;
+const Q=c=>S._q&&S._q[c]!=null?S._q[c]:1;const BUD=()=>S._b||136580;
 let tab=-1;const won=n=>n.toLocaleString()+'원';
 function toast(t){const e=document.getElementById('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),1500)}
 function render(){
